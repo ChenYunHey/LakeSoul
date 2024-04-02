@@ -32,7 +32,7 @@ public class ParseDocument {
             if (value instanceof Document) {
                 SchemaBuilder nestedStructSchemaBuilder = SchemaBuilder.struct();
                 structSchemaBuilder.field(fieldName, buildSchema((Document) value, nestedStructSchemaBuilder));
-            }  else if (value instanceof List) {
+            } else if (value instanceof List) {
                 List<?> arrayList = (List<?>) value;
                 Schema arraySchema = getSchemaForArrayList(arrayList);
                 structSchemaBuilder.field(fieldName, arraySchema);
@@ -68,12 +68,12 @@ public class ParseDocument {
                 struct.put(fieldName, decimalValue);
             } else if (value instanceof Binary) {
                 Binary binaryData = (Binary) value;
-                struct.put(fieldName,binaryData.getData());
+                struct.put(fieldName, binaryData.getData());
             } else if (value instanceof BsonTimestamp) {
                 BsonTimestamp bsonTimestamp = (BsonTimestamp) value;
-                struct.put(fieldName,bsonTimestamp.getValue());
+                struct.put(fieldName, bsonTimestamp.getValue());
             } else {
-                struct.put(fieldName,value);
+                struct.put(fieldName, value);
             }
         }
     }
@@ -100,6 +100,8 @@ public class ParseDocument {
             return Timestamp.SCHEMA;
         } else if (value instanceof BsonTimestamp) {
             return Schema.INT64_SCHEMA;
+        } else if (value == null) {
+            return Schema.OPTIONAL_STRING_SCHEMA;
         } else {
             return Schema.STRING_SCHEMA;
         }
