@@ -14,6 +14,8 @@ import com.ververica.cdc.connectors.postgres.source.PostgresSourceBuilder;
 import com.ververica.cdc.connectors.mongodb.source.MongoDBSource;
 
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.time.Time;
 import com.ververica.cdc.connectors.sqlserver.source.SqlServerSourceBuilder;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -289,7 +291,7 @@ public class JdbcCDC {
 
     private static void mongoCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf, StreamExecutionEnvironment env) throws Exception {
         MongoDBSource<BinarySourceRecord> mongoSource =
-                MongoDBSource.<BinarySourceRecord>builder()
+                MongoDBSourceWithSchema.<BinarySourceRecord>builder()
                         .hosts(host)
                         .databaseList(dbName)
                         .collectionList(tableList)
@@ -309,10 +311,11 @@ public class JdbcCDC {
                 builder =
                 new LakeSoulMultiTableSinkStreamBuilder(mongoSource, context, lakeSoulRecordConvert);
         DataStreamSource<BinarySourceRecord> source = builder.buildMultiTableSource("mongodb Source");
+        source.print();
 
         DataStream<BinarySourceRecord> stream = builder.buildHashPartitionedCDCStream(source);
         DataStreamSink<BinarySourceRecord> dmlSink = builder.buildLakeSoulDMLSink(stream);
         env.execute("LakeSoul CDC Sink From mongo Database " + dbName);
-
     }
+
 }

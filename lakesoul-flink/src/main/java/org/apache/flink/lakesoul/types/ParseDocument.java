@@ -12,37 +12,57 @@ import org.bson.types.Decimal128;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+import static org.apache.flink.lakesoul.types.LakeSoulRecordConvert.hashMap;
+
 public class ParseDocument {
+
+
     public static Struct convertBSONToStruct(String value) {
         Document bsonDocument = Document.parse(value);
         SchemaBuilder structSchemaBuilder = SchemaBuilder.struct();
         Struct struct = new Struct(buildSchema(bsonDocument, structSchemaBuilder));
         fillStructValues(bsonDocument, struct);
-
         return struct;
     }
 
     private static Schema buildSchema(Document bsonDocument, SchemaBuilder structSchemaBuilder) {
+        HashMap<String, Object> tempHashMap = new HashMap<>(hashMap);
         for (Map.Entry<String, Object> entry : bsonDocument.entrySet()) {
             String fieldName = entry.getKey();
             Object value = entry.getValue();
-            if (value != null){
+            tempHashMap.remove(fieldName);
+            if (value == null ){
+                hashMap.putIfAbsent(fieldName, null);
+                if (hashMap.get(fieldName) != null){
+                    Schema schemaFromMap = (Schema) hashMap.get(fieldName);
+                    structSchemaBuilder.field(fieldName, schemaFromMap);
+                }
+            } else {
                 if (value instanceof Document) {
                     SchemaBuilder nestedStructSchemaBuilder = SchemaBuilder.struct();
-                    structSchemaBuilder.field(fieldName, buildSchema((Document) value, nestedStructSchemaBuilder));
+                    Schema schema = buildSchema((Document) value, nestedStructSchemaBuilder);
+                    structSchemaBuilder.field(fieldName, schema);
+                    hashMap.put(fieldName, schema);
                 }  else if (value instanceof List) {
                     List<?> arrayList = (List<?>) value;
                     Schema arraySchema = getSchemaForArrayList(arrayList);
                     structSchemaBuilder.field(fieldName, arraySchema);
+                    hashMap.put(fieldName, arraySchema);
                 } else {
                     structSchemaBuilder.field(fieldName, getSchemaForValue(value));
+                    hashMap.put(fieldName,getSchemaForValue(value));
                 }
             }
-
         }
+        tempHashMap.forEach((k, v) -> {
+            if (v instanceof Schema) {
+                structSchemaBuilder.field(k, (Schema) v);
+            }
+        });
         return structSchemaBuilder.build();
     }
 
@@ -56,6 +76,9 @@ public class ParseDocument {
     }
 
     private static void fillStructValues(Document bsonDocument, Struct struct) {
+        if (bsonDocument.isEmpty()) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : bsonDocument.entrySet()) {
             String fieldName = entry.getKey();
             Object value = entry.getValue();
@@ -79,34 +102,38 @@ public class ParseDocument {
                 } else {
                     struct.put(fieldName,value);
                 }
+            } else {
+                if (hashMap.get(fieldName) != null){
+                    struct.put(fieldName,null);
+                }
             }
         }
     }
 
     private static Schema getSchemaForValue(Object value) {
         if (value instanceof String) {
-            return Schema.STRING_SCHEMA;
+            return Schema.OPTIONAL_STRING_SCHEMA;
         } else if (value instanceof Integer) {
-            return Schema.INT32_SCHEMA;
+            return Schema.OPTIONAL_INT32_SCHEMA;
         } else if (value instanceof Long) {
-            return Schema.INT64_SCHEMA;
+            return Schema.OPTIONAL_INT64_SCHEMA;
         } else if (value instanceof Double) {
-            return Schema.FLOAT64_SCHEMA;
+            return Schema.OPTIONAL_FLOAT64_SCHEMA;
         } else if (value instanceof Boolean) {
-            return Schema.BOOLEAN_SCHEMA;
+            return Schema.OPTIONAL_BOOLEAN_SCHEMA;
         } else if (value instanceof Decimal128) {
             BigDecimal decimalValue = new BigDecimal(value.toString());
-            return Decimal.schema(decimalValue.scale());
+            return Decimal.builder(decimalValue.scale()).optional().build();
         } else if (value instanceof Byte) {
-            return Schema.BYTES_SCHEMA;
+            return Schema.OPTIONAL_BYTES_SCHEMA;
         } else if (value instanceof Binary) {
-            return Schema.BYTES_SCHEMA;
+            return Schema.OPTIONAL_BYTES_SCHEMA;
         } else if (value instanceof Date) {
-            return Timestamp.SCHEMA;
+            return Timestamp.builder().optional().build();
         } else if (value instanceof BsonTimestamp) {
-            return Schema.INT64_SCHEMA;
+            return Schema.OPTIONAL_INT64_SCHEMA;
         } else {
-            return Schema.STRING_SCHEMA;
+            return Schema.OPTIONAL_STRING_SCHEMA;
         }
     }
 }

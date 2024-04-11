@@ -162,6 +162,7 @@ public class LakeSoulSinkGlobalCommitter
                     throw new IOException("Change of partition key column of table " + tableName + " is forbidden");
                 }
                 StructType origSchema ;
+
                 if (TableInfoDao.isArrowKindSchema(tableInfo.getTableSchema())) {
                     Schema arrowSchema = Schema.fromJSON(tableInfo.getTableSchema());
                     origSchema = ArrowUtils.fromArrowSchema(arrowSchema);
@@ -180,7 +181,8 @@ public class LakeSoulSinkGlobalCommitter
 
                 boolean schemaChangeFound = false;
                 if (dbType.equals("mongodb")){
-                    if (mergeStructType.length() > origSchema.size()){
+                    mergeStructType = origSchema.merge(ArrowUtils.fromArrowSchema(msgSchema));
+                    if (!mergeStructType.equals(origSchema)){
                         schemaChangeFound = schemaChanged;
                     }
                 }else {

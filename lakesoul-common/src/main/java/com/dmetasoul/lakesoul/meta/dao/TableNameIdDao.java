@@ -112,7 +112,7 @@ public class TableNameIdDao {
     public void delete(String tableName, String tableNamespace) {
         if (NativeUtils.NATIVE_METADATA_UPDATE_ENABLED) {
             Integer count = NativeMetadataJavaClient.update(NativeUtils.CodedDaoType.DeleteTableNameIdByTableNameAndNamespace, Arrays.asList(tableName, tableNamespace));
-            return;
+            //return;
         }
         Connection conn = null;
         PreparedStatement pstmt = null;

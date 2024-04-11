@@ -10,7 +10,7 @@ import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.util.Collector;
 
-public class BinaryDebeziumDeserializationSchema implements DebeziumDeserializationSchema<BinarySourceRecord> {
+public class BinaryDebeziumDeserializationSchema implements DebeziumDeserializationSchema<BinarySourceRecord>{
 
     LakeSoulRecordConvert convert;
     String basePath;
@@ -31,4 +31,5 @@ public class BinaryDebeziumDeserializationSchema implements DebeziumDeserializat
         return TypeInformation.of(new TypeHint<BinarySourceRecord>() {
         });
     }
+
 }

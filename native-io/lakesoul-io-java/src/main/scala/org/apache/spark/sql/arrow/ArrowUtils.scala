@@ -154,6 +154,10 @@ object ArrowUtils {
     }.toSeq)
   }
 
+  def compareStrucType(structType1: StructType, structType2: StructType): Boolean = {
+    structType1.equals(structType2)
+  }
+
   /** Return Map with conf settings to be used in ArrowPythonRunner */
   def getPythonRunnerConfMap(conf: SQLConf): Map[String, String] = {
     val timeZoneConf = Seq(SQLConf.SESSION_LOCAL_TIMEZONE.key -> conf.sessionLocalTimeZone)

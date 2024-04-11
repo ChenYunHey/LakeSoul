@@ -66,6 +66,7 @@ public class LakeSoulRecordConvert implements Serializable {
     final boolean useCDC;
 
     List<String> partitionFields;
+    static HashMap<String,Object> hashMap = new HashMap<>();
 
 
     public LakeSoulRecordConvert(Configuration conf, String serverTimeZone) {
@@ -233,6 +234,7 @@ public class LakeSoulRecordConvert implements Serializable {
     public RowType toFlinkRowType(Schema schema, boolean isMongoDDL) {
         int arity = schema.fields().size() + 1;
         if (useCDC) ++arity;
+        System.out.println(hashMap);
         String[] colNames = new String[arity];
         LogicalType[] colTypes = new LogicalType[arity];
         List<Field> fieldNames = schema.fields();
