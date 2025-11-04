@@ -64,6 +64,7 @@ public class JdbcCDC {
         passWord = parameter.get(SOURCE_DB_PASSWORD.key());
         host = parameter.get(SOURCE_DB_HOST.key());
         port = parameter.getInt(SOURCE_DB_PORT.key(), MysqlDBManager.DEFAULT_MYSQL_PORT);
+        String sinkDBName = parameter.get(SINK_DBNAME.key(), SINK_DBNAME.defaultValue());
         //Postgres Oracle
         if (dbType.equalsIgnoreCase("oracle") || dbType.equalsIgnoreCase("postgres") ) {
             schemaList = parameter.get(SOURCE_DB_SCHEMA_LIST.key()).split(",");
@@ -136,25 +137,27 @@ public class JdbcCDC {
         LakeSoulRecordConvert lakeSoulRecordConvert = new LakeSoulRecordConvert(conf, conf.getString(SERVER_TIME_ZONE));
 
         if (dbType.equalsIgnoreCase("mysql")) {
-            mysqlCdc(lakeSoulRecordConvert, conf, env);
+            mysqlCdc(lakeSoulRecordConvert, conf, env, sinkDBName);
         }
         if (dbType.equalsIgnoreCase("postgres")) {
             slotName = parameter.get(SOURCE_DB_SLOT_NAME.key(), SOURCE_DB_SLOT_NAME.defaultValue());
-            postgresCdc(lakeSoulRecordConvert, conf, env);
+            postgresCdc(lakeSoulRecordConvert, conf, env, sinkDBName);
         }
         if (dbType.equalsIgnoreCase("oracle")) {
-            oracleCdc(lakeSoulRecordConvert, conf, env);
+            oracleCdc(lakeSoulRecordConvert, conf, env, sinkDBName);
         }
         if (dbType.equalsIgnoreCase("sqlserver")) {
-            sqlserverCdc(lakeSoulRecordConvert, conf, env);
+            sqlserverCdc(lakeSoulRecordConvert, conf, env, sinkDBName);
         }
         if (dbType.equalsIgnoreCase("mongodb")) {
-            mongoCdc(lakeSoulRecordConvert, conf, env);
+            mongoCdc(lakeSoulRecordConvert, conf, env, sinkDBName);
         }
 
     }
 
-    private static void mysqlCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf, StreamExecutionEnvironment env) throws Exception {
+    private static void mysqlCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf,
+                                 StreamExecutionEnvironment env,
+                                 String sinkDBName) throws Exception {
         MySqlSourceBuilder<BinarySourceRecord> sourceBuilder = MySqlSource.<BinarySourceRecord>builder()
                 .hostname(host)
                 .port(port)
@@ -165,7 +168,7 @@ public class JdbcCDC {
                 .username(userName)
                 .password(passWord);
         sourceBuilder.deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert,
-                conf.getString(WAREHOUSE_PATH)));
+                conf.getString(WAREHOUSE_PATH),sinkDBName));
         Properties jdbcProperties = new Properties();
         jdbcProperties.put("allowPublicKeyRetrieval", "true");
         jdbcProperties.put("useSSL", "false");
@@ -189,7 +192,9 @@ public class JdbcCDC {
 
     }
 
-    private static void postgresCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf, StreamExecutionEnvironment env) throws Exception {
+    private static void postgresCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf,
+                                    StreamExecutionEnvironment env,
+                                    String sinkDBName) throws Exception {
         JdbcIncrementalSource<BinarySourceRecord> pgSource = PostgresSourceBuilder.PostgresIncrementalSource.<BinarySourceRecord>builder()
                 .hostname(host)
                 .schemaList(schemaList)
@@ -201,7 +206,7 @@ public class JdbcCDC {
                 .decodingPluginName(pluginName)
                 .splitSize(splitSize)
                 .slotName(slotName)
-                .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH)))
+                .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH),sinkDBName))
                 .build();
 
         NameSpaceManager manager = new NameSpaceManager();
@@ -221,7 +226,9 @@ public class JdbcCDC {
         env.execute("LakeSoul CDC Sink From Postgres Database " + dbName);
     }
 
-    private static void oracleCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf, StreamExecutionEnvironment env) throws Exception {
+    private static void oracleCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf,
+                                  StreamExecutionEnvironment env,
+                                  String sinkDBName) throws Exception {
 
         Properties debeziumProperties = new Properties();
         debeziumProperties.setProperty("log.mining.strategy", "online_catalog");
@@ -236,7 +243,7 @@ public class JdbcCDC {
                         .username(userName)
                         .serverTimeZone(serverTimezone)
                         .password(passWord)
-                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH)))
+                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH),sinkDBName))
                         .includeSchemaChanges(true) // output the schema changes as well
                         .startupOptions(StartupOptions.initial())
                         .debeziumProperties(debeziumProperties)
@@ -261,7 +268,9 @@ public class JdbcCDC {
         env.execute("LakeSoul CDC Sink From Oracle Database " + dbName);
     }
 
-    public static void sqlserverCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf, StreamExecutionEnvironment env) throws Exception {
+    public static void sqlserverCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf,
+                                    StreamExecutionEnvironment env,
+                                    String sinkDBName) throws Exception {
         SqlServerSourceBuilder.SqlServerIncrementalSource<String> sqlServerSource =
                 new SqlServerSourceBuilder()
                         .hostname(host)
@@ -270,7 +279,7 @@ public class JdbcCDC {
                         .tableList(tableList)
                         .username(userName)
                         .password(passWord)
-                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH)))
+                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH),sinkDBName))
                         .startupOptions(StartupOptions.initial())
                         .build();
         NameSpaceManager manager = new NameSpaceManager();
@@ -288,7 +297,8 @@ public class JdbcCDC {
         env.execute("LakeSoul CDC Sink From sqlserver Database " + dbName);
     }
 
-    private static void mongoCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf, StreamExecutionEnvironment env) throws Exception {
+    private static void mongoCdc(LakeSoulRecordConvert lakeSoulRecordConvert, Configuration conf,
+                                 StreamExecutionEnvironment env, String sinkTable) throws Exception {
         MongoDBSource<BinarySourceRecord> mongoSource =
                 MongoDBSource.<BinarySourceRecord>builder()
                         .hosts(host)
@@ -299,7 +309,7 @@ public class JdbcCDC {
                         .batchSize(batchSize)
                         .username(userName)
                         .password(passWord)
-                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH)))
+                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH),sinkTable))
                         .build();
         NameSpaceManager manager = new NameSpaceManager();
         manager.importOrSyncLakeSoulNamespace(dbName);

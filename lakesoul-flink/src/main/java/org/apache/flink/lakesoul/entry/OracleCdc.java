@@ -55,7 +55,7 @@ public class OracleCdc {
                 JOB_CHECKPOINT_INTERVAL.defaultValue());
         String tableList = parameter.get(SOURCE_DB_SCHEMA_TABLES.key());
         String flinkCheckpoint = parameter.get(FLINK_CHECKPOINT.key());
-
+        String sinkDBName = parameter.get(SINK_DBNAME.key(), SINK_DBNAME.defaultValue());
         String[] tables = tableList.split(",");
         String[] userTables = new String[tables.length];
         for (int i = 0; i < tables.length; i++) {
@@ -118,7 +118,7 @@ public class OracleCdc {
                         .port(port)
                         .username(userName)
                         .password(passWord)
-                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH)))
+                        .deserializer(new BinaryDebeziumDeserializationSchema(lakeSoulRecordConvert, conf.getString(WAREHOUSE_PATH), sinkDBName))
                         .includeSchemaChanges(true) // output the schema changes as well
                         .startupOptions(StartupOptions.initial())
                         .debeziumProperties(debeziumProperties)
