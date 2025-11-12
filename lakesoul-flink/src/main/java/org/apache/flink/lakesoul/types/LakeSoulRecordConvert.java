@@ -549,9 +549,8 @@ public class LakeSoulRecordConvert implements Serializable {
             case Timestamp.SCHEMA_NAME:
             case MicroTimestamp.SCHEMA_NAME:
             case NanoTimestamp.SCHEMA_NAME:
-//            case com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Timestamp.LOGICAL_NAME:
-//                writeTimeStamp(writer, index, fieldValue, fieldSchema,serverTimeZone);
-//                break;
+                writeTimeStamp(writer, index, fieldValue, fieldSchema,serverTimeZone);
+                break;
             case Decimal.LOGICAL_NAME:
                 writeDecimal(writer, index, fieldValue, fieldSchema);
                 break;
