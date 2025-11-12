@@ -89,7 +89,7 @@ public abstract class DecimalWriter<T> extends ArrowFieldWriter<T> {
 
         @Override
         DecimalData readDecimal(RowData in, int ordinal) {
-            return in.getDecimal(ordinal, precision, scale);
+            return in.getDecimal(ordinal, 3, 4);
         }
     }
 

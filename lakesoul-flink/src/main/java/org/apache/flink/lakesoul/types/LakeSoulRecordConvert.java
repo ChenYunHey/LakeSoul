@@ -4,13 +4,13 @@
 
 package org.apache.flink.lakesoul.types;
 
-import com.ververica.cdc.connectors.mongodb.internal.MongoDBEnvelope;
-import com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Decimal;
-import com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Field;
-import com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Schema;
-import com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Struct;
-import com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.errors.DataException;
-import com.ververica.cdc.debezium.utils.TemporalConversions;
+import org.apache.flink.cdc.connectors.mongodb.internal.MongoDBEnvelope;
+import org.apache.flink.cdc.connectors.shaded.org.apache.kafka.connect.data.Decimal;
+import org.apache.flink.cdc.connectors.shaded.org.apache.kafka.connect.data.Field;
+import org.apache.flink.cdc.connectors.shaded.org.apache.kafka.connect.data.Schema;
+import org.apache.flink.cdc.connectors.shaded.org.apache.kafka.connect.data.Struct;
+import org.apache.flink.cdc.connectors.shaded.org.apache.kafka.connect.errors.DataException;
+import org.apache.flink.cdc.debezium.utils.TemporalConversions;
 import io.debezium.data.Enum;
 import io.debezium.data.EnumSet;
 import io.debezium.data.Envelope;
@@ -336,8 +336,9 @@ public class LakeSoulRecordConvert implements Serializable {
                 return new IntType(nullable);
             case ZonedTime.SCHEMA_NAME:
             case ZonedTimestamp.SCHEMA_NAME:
-            case com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Timestamp.LOGICAL_NAME:
                 return new LocalZonedTimestampType(nullable, LocalZonedTimestampType.DEFAULT_PRECISION);
+//            case com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Timestamp.LOGICAL_NAME:
+//                return new LocalZonedTimestampType(nullable, LocalZonedTimestampType.DEFAULT_PRECISION);
             case Geometry.LOGICAL_NAME:
             case VariableScaleDecimal.LOGICAL_NAME:
                 return new DecimalType(nullable, 38, 30);
@@ -548,9 +549,9 @@ public class LakeSoulRecordConvert implements Serializable {
             case Timestamp.SCHEMA_NAME:
             case MicroTimestamp.SCHEMA_NAME:
             case NanoTimestamp.SCHEMA_NAME:
-            case com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Timestamp.LOGICAL_NAME:
-                writeTimeStamp(writer, index, fieldValue, fieldSchema,serverTimeZone);
-                break;
+//            case com.ververica.cdc.connectors.shaded.org.apache.kafka.connect.data.Timestamp.LOGICAL_NAME:
+//                writeTimeStamp(writer, index, fieldValue, fieldSchema,serverTimeZone);
+//                break;
             case Decimal.LOGICAL_NAME:
                 writeDecimal(writer, index, fieldValue, fieldSchema);
                 break;
