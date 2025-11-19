@@ -22,7 +22,7 @@ SPDX-License-Identifier: Apache-2.0
     <properties>
         <flink.version>1.20.0</flink.version>
         <log4j.version>2.17.2</log4j.version>
-        <cdc.version>3.0.0</cdc.version>
+        <cdc.version>3.5.0</cdc.version>
     </properties>
 
     <dependencies>
@@ -176,29 +176,29 @@ SPDX-License-Identifier: Apache-2.0
         </dependency>
 
         <dependency>
-            <groupId>com.ververica</groupId>
+            <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-sqlserver-cdc</artifactId>
-            <version>${cdc.version}</version>
+            <version>3.5.0</version>
         </dependency>
         <dependency>
-            <groupId>com.ververica</groupId>
+            <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-mysql-cdc</artifactId>
-            <version>${cdc.version}</version>
+            <version>3.5.0</version>
         </dependency>
         <dependency>
-            <groupId>com.ververica</groupId>
+            <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-oracle-cdc</artifactId>
-            <version>${cdc.version}</version>
+            <version>3.5.0</version>
         </dependency>
         <dependency>
-            <groupId>com.ververica</groupId>
+            <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-postgres-cdc</artifactId>
-            <version>${cdc.version}</version>
+            <version>3.5.0</version>
         </dependency>
         <dependency>
-            <groupId>com.ververica</groupId>
+            <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-mongodb-cdc</artifactId>
-            <version>${cdc.version}</version>
+            <version>3.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -399,6 +399,12 @@ SPDX-License-Identifier: Apache-2.0
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client-runtime</artifactId>
             <version>3.3.2</version>
+            <scope>${local.scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.openlineage</groupId>
+            <artifactId>openlineage-flink</artifactId>
+            <version>1.19.0</version>
             <scope>${local.scope}</scope>
         </dependency>
     </dependencies>
